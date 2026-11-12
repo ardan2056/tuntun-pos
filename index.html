@@ -1,0 +1,2305 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Caffee Sa'adah - Sistem Kasir & Manajemen Kafe Modern</title>
+  <meta name="description" content="Aplikasi POS kasir khusus Coffee Shop & Kafe: kasir cepat, pesanan hari ini, cetak struk kasir, struk barista dapur, dan stiker cup gelas minuman per cup.">
+
+  <!-- Fonts: Outfit & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Favicon / App Icon -->
+  <link rel="icon" type="image/png" href="assets/saadah_logo.png">
+  <link rel="apple-touch-icon" href="assets/saadah_logo.png">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="css/style.css?v=1794112000000">
+
+  <!-- Critical Auth Gate Styling: Login Screen on Launch & Multi-Store Switcher -->
+  <style>
+    #authGateModal {
+      position: fixed !important;
+      inset: 0 !important;
+      z-index: 99999999 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: radial-gradient(circle at center, rgba(39, 26, 19, 0.96), rgba(18, 12, 9, 0.99)) !important;
+      backdrop-filter: blur(14px) !important;
+      -webkit-backdrop-filter: blur(14px) !important;
+      padding: 16px !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 0.3s ease, visibility 0.3s ease !important;
+    }
+    #authGateModal.auth-hidden {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      display: none !important;
+    }
+  </style>
+</head>
+<body class="theme-cream">
+
+  <!-- ================= AUTH GATE SCREEN: LOGIN & REGISTRASI TOKO MULTI-ID (TAMPILAN AWAL) ================= -->
+  <div id="authGateModal" class="auth-gate-overlay">
+    <div class="auth-gate-card">
+      <div class="auth-gate-header">
+        <div class="auth-logo-wrap">
+          <img src="assets/saadah_logo.png" alt="Logo Caffee Sa'adah" class="auth-logo-img">
+        </div>
+        <h2 class="auth-title">TUNTUN <span>POS</span> CLOUD</h2>
+        <p class="auth-subtitle">Sistem Kasir & Manajemen Multi-Toko Modern</p>
+      </div>
+
+      <!-- Auth Tabs: Masuk / Daftar Toko -->
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab-btn active" id="tabAuthLogin">
+          <i class="fa-solid fa-right-to-bracket"></i> Masuk (Login)
+        </button>
+        <button type="button" class="auth-tab-btn" id="tabAuthRegister">
+          <i class="fa-solid fa-store"></i> Daftar Toko Baru (Register)
+        </button>
+      </div>
+
+      <!-- FORM LOGIN (HANYA PAKAI ID SAJA) -->
+      <form id="formAuthLogin" class="auth-form active" onsubmit="window.handleAuthLoginSubmit(event); return false;">
+        <div class="auth-input-group">
+          <label for="loginStoreId"><i class="fa-solid fa-shop text-caramel"></i> ID Toko / ID Kasir:</label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-id-badge"></i>
+            <input type="text" id="loginStoreId" placeholder="Contoh: SAADAH" autocomplete="username" spellcheck="false" style="font-weight: 700; text-transform: uppercase;">
+          </div>
+          <span style="font-size: 0.75rem; color: #8a6a4e; margin-top: 4px; display: block;">
+            <i class="fa-solid fa-circle-check text-caramel"></i> Masuk cepat hanya menggunakan ID Toko (ID Utama: <strong>SAADAH</strong>)
+          </span>
+        </div>
+
+        <div class="auth-actions" style="margin-top: 8px;">
+          <button type="button" class="btn-auth-primary" id="btnSubmitLogin" onclick="window.handleAuthLoginSubmit(event)" style="width: 100%; padding: 14px; font-size: 1rem;">
+            <i class="fa-solid fa-right-to-bracket"></i> Masuk Sekarang
+          </button>
+        </div>
+
+        <div class="auth-footer-prompt">
+          <span>Ingin buka cabang / toko baru?</span>
+          <button type="button" class="btn-link-switch" id="linkToRegister">Daftar Toko Baru</button>
+        </div>
+      </form>
+
+      <!-- FORM REGISTER (HANYA PAKAI ID & NAMA) -->
+      <form id="formAuthRegister" class="auth-form" onsubmit="window.handleAuthRegisterSubmit(event); return false;">
+        <div class="auth-input-group">
+          <label for="regStoreId"><i class="fa-solid fa-id-badge text-caramel"></i> ID Toko Baru:</label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-hashtag"></i>
+            <input type="text" id="regStoreId" placeholder="Contoh: CABANG02" spellcheck="false" style="font-weight: 700; text-transform: uppercase;">
+          </div>
+        </div>
+
+        <div class="auth-input-group">
+          <label for="regStoreName"><i class="fa-solid fa-shop text-caramel"></i> Nama Toko / Kafe Baru:</label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-mug-saucer"></i>
+            <input type="text" id="regStoreName" placeholder="Contoh: Caffee Sa'adah Cabang 2">
+          </div>
+        </div>
+
+        <div class="auth-feature-callout">
+          <div class="callout-icon"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="callout-text">
+            <span>50+ menu kopi otomatis tersedia, laporan pesanan mulai dari Rp 0 tanpa password.</span>
+          </div>
+        </div>
+
+        <div class="auth-actions">
+          <button type="button" class="btn-auth-primary" id="btnSubmitRegister" onclick="window.handleAuthRegisterSubmit(event)">
+            <i class="fa-solid fa-circle-check"></i> Daftarkan Toko & Langsung Masuk
+          </button>
+        </div>
+
+        <div class="auth-footer-prompt">
+          <span>Sudah memiliki ID Toko?</span>
+          <button type="button" class="btn-link-switch" id="linkToLogin">Kembali ke Menu Masuk</button>
+        </div>
+      </form>
+
+      <!-- Daftar Toko Terdaftar (Quick Switcher Pill List) -->
+      <div class="auth-saved-stores" id="authSavedStoresWrap">
+        <span class="saved-stores-title"><i class="fa-solid fa-clock-rotate-left"></i> Toko Terdaftar di Perangkat:</span>
+        <div class="saved-stores-pills" id="authSavedStoresList">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="appContainer" class="app-container">
+
+    <!-- ================= TOP HEADER ================= -->
+    <header class="app-header">
+      <div class="header-left">
+        <!-- Logo Caffee Sa'adah: Klik untuk membuka Layar Manajemen Penuh -->
+        <button class="brand-hub-btn" id="headerLogoBtn" title="Buka Menu Manajemen, Grafik Analitik, Keuangan & Stok">
+          <div class="brand-logo-img-wrap">
+            <img src="assets/saadah_logo.png" alt="Caffee Sa'adah" class="header-brand-logo-img">
+          </div>
+          <div class="brand-text-col">
+            <h1 class="brand-name">CAFFEE <span>SA'ADAH</span></h1>
+            <span class="brand-tagline"><i class="fa-solid fa-store"></i> Coffee, Cake & Bread</span>
+          </div>
+        </button>
+      </div>
+
+      <div class="header-center">
+        <!-- Main Screen Switcher: Kasir POS, Pesanan Hari Ini, dan Layar Manajemen Penuh -->
+        <div class="main-screen-tabs">
+          <button class="screen-tab-btn active" id="tabNavPos" data-view="pos">
+            <i class="fa-solid fa-cash-register"></i> Menu Kasir
+          </button>
+          <button class="screen-tab-btn" id="tabNavOrders" data-view="orders">
+            <i class="fa-solid fa-receipt"></i> Pesanan Hari Ini
+            <span class="order-counter-badge" id="dailyOrderCountBadge">0</span>
+          </button>
+          <button class="screen-tab-btn" id="tabNavManagement" data-view="management">
+            <i class="fa-solid fa-chart-line"></i> Menu Manajemen
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ================= MAIN APP BODY ================= -->
+    <main class="app-main" id="mainAppArea">
+
+      <!-- ================= 1. VIEW KASIR POS (3-COLUMN LAYOUT) ================= -->
+      <section class="main-view active" id="viewPos">
+        <div class="pos-workbench">
+          <!-- PANEL 1: SIDEBAR KATEGORI (DI SAMPING) -->
+          <aside class="pos-side-categories" id="posSideCategories">
+            <div class="side-cat-header">
+              <i class="fa-solid fa-layer-group"></i>
+              <span>Kategori Menu</span>
+            </div>
+            <div class="categories-v-list" id="categoriesVList">
+              <!-- Rendered dynamically: Semua, Signature Coffee, Espresso Based, Non-Coffee, etc. -->
+            </div>
+          </aside>
+
+          <!-- PANEL 2: PRODUCT GALLERY DENGAN FOTO MINUMAN & FILTER -->
+          <div class="pos-product-gallery">
+            <!-- Top Filter Bar -->
+            <div class="gallery-top-bar">
+              <!-- Search Input -->
+              <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="coffeeSearchInput" placeholder="Cari kopi, latte, mocktail, pastry...">
+                <button class="btn-clear-search" id="clearSearchBtn" style="display:none;"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div class="coffee-grid" id="coffeeGrid">
+              <!-- Rendered dynamically with aesthetic drink photos -->
+            </div>
+          </div>
+
+          <!-- PANEL 3: CART / BILLING (KANAN) -->
+          <div class="pos-cart-panel" id="posCartPanel">
+            <div class="cart-card-header">
+              <div class="cart-title">
+                <i class="fa-solid fa-mug-saucer"></i>
+                <h2 id="cartTitleText">Pesanan Baru</h2>
+              </div>
+              <button class="btn-text-danger" id="clearCartBtn" title="Kosongkan Pesanan">
+                <i class="fa-solid fa-trash-can"></i> Hapus
+              </button>
+            </div>
+
+            <!-- Mode Edit Pesanan Alert Banner -->
+            <div id="cartOrderEditAlert" class="cart-edit-mode-banner" style="display: none;">
+              <div class="edit-badge-text">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span>Mengedit Pesanan <strong id="editingOrderSeqTag">#001</strong></span>
+              </div>
+              <button type="button" class="btn-cancel-order-edit" id="cancelOrderEditBtn">Batal Edit</button>
+            </div>
+
+            <!-- Selected Customer / Member Selector -->
+            <div class="customer-strip" id="customerPickerBtn">
+              <div class="cust-info">
+                <div class="cust-avatar"><i class="fa-solid fa-user"></i></div>
+                <div>
+                  <strong id="cartCustomerName">Pilih Pelanggan / Member</strong>
+                  <span id="cartCustomerTier">Dapatkan poin loyalitas & promo member</span>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-right arrow"></i>
+            </div>
+
+            <!-- Cart Items List (Bisa di-edit modifier / item-nya) -->
+            <div class="cart-items-scroll" id="cartItemsList">
+              <!-- Rendered dynamically with Edit Modifier Button -->
+            </div>
+
+            <!-- Cart Summary & Calculation -->
+            <div class="cart-checkout-footer">
+              <!-- Promo Voucher Input -->
+              <div class="voucher-row">
+                <div class="input-voucher-wrap">
+                  <i class="fa-solid fa-ticket"></i>
+                  <input type="text" id="voucherCodeInput" placeholder="Kode Voucher (e.g. SAADAHHEMAT)">
+                </div>
+                <button class="btn-apply-voucher" id="applyVoucherBtn">Terapkan</button>
+              </div>
+
+              <!-- Applied Promo Badge -->
+              <div id="appliedPromoBadge" class="applied-promo-badge" style="display:none;">
+                <i class="fa-solid fa-circle-check"></i>
+                <span id="appliedPromoText">Promo Aktif: Diskon 15%</span>
+                <button id="removePromoBtn" class="btn-remove-promo"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+
+              <!-- Calculation Lines -->
+              <div class="calc-box">
+                <div class="calc-row">
+                  <span>Subtotal</span>
+                  <strong id="cartSubtotalText">Rp 0</strong>
+                </div>
+                <div class="calc-row discount" id="cartDiscountRow" style="display:none;">
+                  <span>Diskon Promo / Member</span>
+                  <strong id="cartDiscountText">-Rp 0</strong>
+                </div>
+                <div class="calc-divider"></div>
+                <div class="calc-row total">
+                  <span>Total Tagihan</span>
+                  <strong class="total-price" id="cartGrandTotalText">Rp 0</strong>
+                </div>
+              </div>
+
+              <!-- Checkout Button -->
+              <button class="btn-warm-checkout" id="checkoutBtn" disabled>
+                <div class="btn-left">
+                  <i class="fa-solid fa-cash-register"></i>
+                  <span>Bayar Sekarang</span>
+                </div>
+                <span class="btn-right" id="checkoutBtnTotal">Rp 0</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 2. VIEW DAFTAR PESANAN (PERSIS SCREENSHOT 1 & ANDROID FRIENDLY) ================= -->
+      <section class="main-view" id="viewOrders">
+        <div class="orders-screen-container">
+          <!-- Top Orange Bar (Safe-Area Friendly, Anti-Kepotong) -->
+          <div class="orders-top-orange-bar">
+            <div class="orders-top-left">
+              <button type="button" class="btn-orders-back" id="backToPosBtn" title="Kembali ke Layar Kasir">
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+              <h2 class="orders-top-title">Daftar Pesanan</h2>
+            </div>
+            <div class="orders-top-right">
+              <button type="button" class="btn-orders-refresh" id="refreshDailyOrdersBtn" title="Refresh Daftar Pesanan">
+                <span>Refresh</span>
+                <i class="fa-solid fa-arrows-rotate"></i>
+              </button>
+              <button type="button" class="btn-orders-excel" id="exportDailyOrdersBtn" title="Export ke Excel (.xlsx)">
+                <i class="fa-solid fa-file-excel"></i>
+                <span class="btn-text-hide-sm">Excel</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Subnav Filter Tabs & Search Bar -->
+          <div class="orders-subnav-bar">
+            <div class="orders-status-tabs">
+              <button type="button" class="tab-order-status" data-filter="pending">Pending</button>
+              <button type="button" class="tab-order-status active" data-filter="selesai">Selesai</button>
+              <button type="button" class="tab-order-status" data-filter="menunggu">Menunggu pembayaran</button>
+              <button type="button" class="tab-order-status" data-filter="all">Semua</button>
+            </div>
+            <div class="orders-search-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="inputSearchDailyOrders" placeholder="Cari Pesanan..." autocomplete="off">
+              <button type="button" id="btnClearOrdersSearch" class="btn-clear-search" style="display:none;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+          </div>
+
+          <!-- Split Workspace: Left Grid & Right Detail Panel -->
+          <div class="orders-split-workspace">
+            <!-- Left Master Pane: Grid of Order Cards -->
+            <div class="orders-master-pane">
+              <div class="orders-cards-grid" id="dailyOrdersCardsGrid">
+                <!-- Dynamically rendered order cards -->
+              </div>
+            </div>
+
+            <!-- Right Detail Pane: Order Detail & Direct Action Buttons -->
+            <div class="orders-detail-pane" id="ordersDetailPane">
+              <!-- Dynamically rendered detail of selected order -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 3. VIEW MENU MANAJEMEN PENUH (FULL SCREEN DENGAN SIDEBAR KIRI) ================= -->
+      <section class="main-view" id="viewManagement">
+        <div class="management-layout">
+          <!-- SIDEBAR MANAJEMEN KIRI (SEMUA MENU MANAJEMEN) -->
+          <aside class="mgmt-sidebar">
+            <div class="mgmt-sidebar-header">
+              <i class="fa-solid fa-sliders"></i>
+              <span>Pusat Manajemen</span>
+            </div>
+            <nav class="mgmt-nav-list">
+              <button class="mgmt-nav-item active" data-sub="dashboard">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>Grafik & Analitik</span>
+              </button>
+              <button class="mgmt-nav-item" data-sub="keuangan">
+                <i class="fa-solid fa-wallet"></i>
+                <span>Laporan Keuangan</span>
+              </button>
+              <button class="mgmt-nav-item" data-sub="produk">
+                <i class="fa-solid fa-camera"></i>
+                <span>Katalog & Upload Foto</span>
+              </button>
+              <button class="mgmt-nav-item" data-sub="promosi">
+                <i class="fa-solid fa-tags"></i>
+                <span>Promosi & Voucher</span>
+              </button>
+              <button class="mgmt-nav-item" data-sub="shift">
+                <i class="fa-solid fa-vault"></i>
+                <span>Shift & Kas Laci</span>
+              </button>
+              <button class="mgmt-nav-item" data-sub="crm">
+                <i class="fa-solid fa-users"></i>
+                <span>Pelanggan & CRM</span>
+              </button>
+              <button class="mgmt-nav-item" data-sub="kds">
+                <i class="fa-solid fa-fire-burner"></i>
+                <span>Layar Dapur (KDS)</span>
+              </button>
+              <button class="mgmt-nav-item" data-sub="retur">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Retur & Audit Trail</span>
+              </button>
+              <button class="mgmt-nav-item" data-sub="cabang">
+                <i class="fa-solid fa-network-wired"></i>
+                <span>Multi-Cabang & Mutasi</span>
+              </button>
+              <button class="mgmt-nav-item" data-sub="ai">
+                <i class="fa-solid fa-robot"></i>
+                <span>Asisten AI Kafe</span>
+              </button>
+              <button class="mgmt-nav-item" data-sub="pengaturan">
+                <i class="fa-solid fa-gear"></i>
+                <span>Pengaturan Toko</span>
+              </button>
+            </nav>
+            <div class="mgmt-sidebar-footer">
+              <button class="btn-back-pos-full" id="mgmtBackToPosBtn">
+                <i class="fa-solid fa-cash-register"></i> Ke Kasir
+              </button>
+              <button type="button" class="btn-switch-store-sidebar" id="mgmtSwitchStoreBtn" title="Ganti Akun / Toko Lain">
+                <i class="fa-solid fa-right-from-bracket"></i> Ganti Toko / Keluar
+              </button>
+            </div>
+          </aside>
+
+          <!-- CONTENT AREA MANAJEMEN -->
+          <div class="mgmt-content-area">
+
+            <!-- SUB-PANE 1: DASHBOARD & GRAFIK ANALITIK LENGKAP -->
+            <div class="mgmt-pane active" id="paneDashboard">
+              <div class="pane-head">
+                <div>
+                  <h2>Grafik Analitik & Performa Kafe</h2>
+                  <p>Pantau omzet harian, jam ramai pemesanan kopi, dan produk paling laris.</p>
+                </div>
+              </div>
+
+              <!-- Top Metrics Cards -->
+              <div class="metrics-grid">
+                <div class="metric-card">
+                  <div class="metric-icon warm"><i class="fa-solid fa-money-bill-wave"></i></div>
+                  <div class="metric-info">
+                    <span>Omzet Hari Ini</span>
+                    <strong class="text-caramel" id="dashTotalRevenue">Rp 164.000</strong>
+                    <small><i class="fa-solid fa-arrow-trend-up"></i> +18.4% vs kemarin</small>
+                  </div>
+                </div>
+
+                <div class="metric-card">
+                  <div class="metric-icon espresso"><i class="fa-solid fa-receipt"></i></div>
+                  <div class="metric-info">
+                    <span>Total Pesanan Selesai</span>
+                    <strong id="dashTotalOrders">3 Pesanan</strong>
+                    <small>Rata-rata: Rp 54.600 / pesanan</small>
+                  </div>
+                </div>
+
+                <div class="metric-card">
+                  <div class="metric-icon gold"><i class="fa-solid fa-sack-dollar"></i></div>
+                  <div class="metric-info">
+                    <span>Laba Kotor Estimasi</span>
+                    <strong class="text-green" id="dashGrossProfit">Rp 104.500</strong>
+                    <small>Margin Laba: ~63.7%</small>
+                  </div>
+                </div>
+
+                <div class="metric-card">
+                  <div class="metric-icon dark"><i class="fa-solid fa-vault"></i></div>
+                  <div class="metric-info">
+                    <span>Kas Tunai di Laci</span>
+                    <strong id="dashDrawerCash">Rp 278.600</strong>
+                    <small>Modal awal: Rp 250.000</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- VISUAL GRAFIK PENJUALAN 7 HARI & JAM RAMAI KAFE -->
+              <div class="charts-row">
+                <!-- Grafik Tren Penjualan (Harian, Bulanan, Tahunan) -->
+                <div class="chart-card">
+                  <div class="chart-header">
+                    <div>
+                      <h3><i class="fa-solid fa-chart-simple text-caramel"></i> <span id="trendChartTitle">Tren Omzet 7 Hari Terakhir</span></h3>
+                      <span class="badge-sub" id="trendChartSubtitle">Oktober 2026 • Caffee Sa'adah</span>
+                    </div>
+                    <div class="trend-filter-pills" id="trendFilterPills">
+                      <button type="button" class="trend-pill active" data-period="7days">7 Hari</button>
+                      <button type="button" class="trend-pill" data-period="month">Bulan Ini</button>
+                      <button type="button" class="trend-pill" data-period="year">Tahun Ini</button>
+                    </div>
+                  </div>
+                  <div class="chart-bars-wrap" id="salesTrendBarsWrap">
+                    <!-- Rendered dynamically for 7 Days, Month, and Year (Jan - Des) -->
+                  </div>
+                </div>
+
+                <!-- Grafik Jam Ramai Pemesanan (Peak Hours) -->
+                <div class="chart-card">
+                  <div class="chart-header">
+                    <h3><i class="fa-solid fa-clock text-caramel"></i> Jam Paling Ramai Kopi (Peak Hours)</h3>
+                    <span class="badge-sub">Kunjungan Meja</span>
+                  </div>
+                  <div class="peak-hours-list" id="dashPeakHoursList">
+                    <div style="text-align: center; padding: 36px 16px; color: var(--text-dim);">
+                      <i class="fa-solid fa-clock" style="font-size: 2rem; opacity: 0.35; margin-bottom: 8px; display: block;"></i>
+                      <p style="font-size: 0.82rem; margin: 0;">Belum ada pesanan hari ini. Jam ramai akan dikalkulasi otomatis secara real-time.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Top Products Breakdown -->
+              <div class="dash-bottom-row">
+                <div class="dash-table-card">
+                  <h3><i class="fa-solid fa-fire text-caramel"></i> Top 5 Menu Paling Laris & Menguntungkan</h3>
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Menu Minuman</th>
+                        <th>Kategori</th>
+                        <th>Terjual</th>
+                        <th>Total Omzet</th>
+                        <th>Margin Laba</th>
+                      </tr>
+                    </thead>
+                    <tbody id="dashTopProductsBody">
+                      <tr>
+                        <td colspan="5" style="text-align: center; padding: 32px 14px; color: var(--text-dim);">
+                          <i class="fa-solid fa-mug-saucer" style="font-size: 2rem; opacity: 0.35; margin-bottom: 8px; display: block;"></i>
+                          Belum ada pesanan hari ini. Data Top 5 Menu & Laba akan terisi otomatis secara real-time begitu ada pesanan.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- SUB-PANE 2: KEUANGAN FLEKSIBEL (RENTANG TANGGAL DARI X SAMPAI Y) -->
+            <div class="mgmt-pane" id="paneKeuangan">
+              <div class="pane-head">
+                <div>
+                  <h2>Laporan Keuangan & Laba Rugi Fleksibel</h2>
+                  <p>Pilih rentang tanggal apa saja: Hari Ini, Bulan Ini, Tahun Ini, atau tentukan tanggal awal dan akhir.</p>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <button class="btn-secondary" id="exportFinanceExcelBtn" title="Export Laporan ke File Excel/CSV">
+                    <i class="fa-solid fa-file-excel" style="color: #2e7d32;"></i> Export ke Excel
+                  </button>
+                  <button type="button" class="btn-secondary" id="btnViewReportArchives" style="color: #634027; border-color: #d1bba4;" title="Lihat riwayat arsip simpanan dari laporan yang pernah di-reset">
+                    <i class="fa-solid fa-box-archive"></i> Arsip Cadangan (<span id="archiveCountBadge">0</span>)
+                  </button>
+                  <button type="button" class="btn-secondary" id="btnResetCurrentStoreReports" style="color: #c94a4a; border-color: #e5b4b4;" title="Reset semua pesanan dan omzet toko ini ke Rp 0 (dilindungi 3 tahap konfirmasi & otomatis membuat simpanan cadangan)">
+                    <i class="fa-solid fa-rotate-left"></i> Reset Laporan (Mulai Rp 0)
+                  </button>
+                  <button class="btn-primary-warm" id="openAddExpenseModalBtn">
+                    <i class="fa-solid fa-plus"></i> Catat Pengeluaran Baru
+                  </button>
+                </div>
+              </div>
+
+              <!-- Date Filter Toolbar -->
+              <div class="finance-filter-card">
+                <div class="filter-group">
+                  <label><i class="fa-solid fa-calendar-days"></i> Pilih Periode Cepat:</label>
+                  <div class="date-preset-buttons">
+                    <button class="btn-preset-date active" data-range="today">Hari Ini</button>
+                    <button class="btn-preset-date" data-range="yesterday">Kemarin</button>
+                    <button class="btn-preset-date" data-range="thisWeek">7 Hari Terakhir</button>
+                    <button class="btn-preset-date" data-range="thisMonth">Bulan Ini</button>
+                    <button class="btn-preset-date" data-range="thisYear">Tahun Ini</button>
+                  </div>
+                </div>
+
+                <div class="filter-custom-range">
+                  <div class="date-input-wrap">
+                    <label>Dari Tanggal:</label>
+                    <input type="date" id="financeStartDate">
+                  </div>
+                  <div class="date-input-wrap">
+                    <label>Sampai Tanggal:</label>
+                    <input type="date" id="financeEndDate">
+                  </div>
+                  <button class="btn-apply-filter" id="applyFinanceFilterBtn">
+                    <i class="fa-solid fa-filter"></i> Terapkan Filter
+                  </button>
+                </div>
+              </div>
+
+              <!-- Financial Summary Grid -->
+              <div class="finance-summary-grid">
+                <div class="fin-card">
+                  <span class="label">Total Omzet Penjualan</span>
+                  <h3 class="val text-caramel" id="finTotalRevenue">Rp 164.000</h3>
+                  <small id="finOrderCountText">3 transaksi valid</small>
+                </div>
+                <div class="fin-card">
+                  <span class="label">Total HPP Modal Bahan Kopi/Susu</span>
+                  <h3 class="val text-muted" id="finTotalCogs">Rp 59.500</h3>
+                  <small>Harga Pokok Penjualan</small>
+                </div>
+                <div class="fin-card">
+                  <span class="label">Laba Kotor (Gross Profit)</span>
+                  <h3 class="val text-green" id="finGrossProfit">Rp 104.500</h3>
+                  <small id="finGrossMarginText">Margin: ~63.7%</small>
+                </div>
+                <div class="fin-card">
+                  <span class="label">Beban Operasional</span>
+                  <h3 class="val text-danger" id="finTotalExpenses">Rp 215.000</h3>
+                  <small>Susu darurat, listrik, dll</small>
+                </div>
+                <div class="fin-card highlight-net">
+                  <span class="label">Estimasi Laba / Rugi Bersih</span>
+                  <h2 class="val" id="finNetProfit">-Rp 110.500</h2>
+                  <small>Laba kotor dikurangi biaya operasional</small>
+                </div>
+              </div>
+
+              <!-- 1. TABEL RINCIAN APA SAJA YANG TERJUAL (SALES BY PRODUCT) -->
+              <div class="dash-table-card" style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                  <div>
+                    <h3 style="margin: 0;"><i class="fa-solid fa-mug-hot text-caramel"></i> Rincian Menu Terjual (Sales by Product)</h3>
+                    <p style="font-size:0.75rem; color:var(--text-dim); margin:2px 0 0 0;">Daftar menu makanan & minuman yang terjual pada rentang waktu terpilih beserta omzet dan estimasi laba.</p>
+                  </div>
+                  <span class="badge-sub" id="finProductsSoldBadge" style="font-size:0.76rem; font-weight:800; background:rgba(201,125,62,0.12); color:var(--caramel);">0 Menu Terjual</span>
+                </div>
+                <div class="table-responsive">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>No</th>
+                        <th>Nama Menu</th>
+                        <th>Kategori</th>
+                        <th>Terjual</th>
+                        <th>Harga Satuan</th>
+                        <th>Total Omzet</th>
+                        <th>Modal HPP</th>
+                        <th>Laba Kotor</th>
+                        <th>Margin Laba</th>
+                      </tr>
+                    </thead>
+                    <tbody id="finProductSalesTableBody">
+                      <!-- Rendered dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- 2. TABEL DAFTAR SEMUA TRANSAKSI PESANAN LENGKAP (INVOICE, DETAIL ITEM & PEMASUKAN) -->
+              <div class="dash-table-card" style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                  <div>
+                    <h3 style="margin: 0;"><i class="fa-solid fa-receipt text-caramel"></i> Riwayat Seluruh Transaksi Pesanan & Pemasukan</h3>
+                    <p style="font-size:0.75rem; color:var(--text-dim); margin:2px 0 0 0;">Pemilik dapat melihat nomor pesanan, invoice, detail item & catatan pesanan, serta total pemasukan kasir.</p>
+                  </div>
+                  <span class="badge-sub" id="finOrdersTotalBadge" style="font-size:0.76rem; font-weight:800; background:rgba(46,125,50,0.12); color:#2e7d32;">0 Pesanan</span>
+                </div>
+                <div class="table-responsive">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>No. Pesanan</th>
+                        <th>Invoice & Waktu</th>
+                        <th>Pelanggan</th>
+                        <th>Layanan</th>
+                        <th>Rincian Menu & Catatan</th>
+                        <th>Metode Bayar</th>
+                        <th>Total Pemasukan</th>
+                        <th>Kasir</th>
+                        <th>Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody id="finOrdersTableBody">
+                      <!-- Rendered dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- 3. Expenses Table -->
+              <div class="dash-table-card">
+                <div style="margin-bottom: 12px;">
+                  <h3 style="margin: 0;"><i class="fa-solid fa-wallet text-caramel"></i> Rincian Pengeluaran Operasional Toko</h3>
+                  <p style="font-size:0.75rem; color:var(--text-dim); margin:2px 0 0 0;">Pencatatan biaya bahan baku darurat, operasional, dan kas keluar toko.</p>
+                </div>
+                <div class="table-responsive">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Tanggal</th>
+                        <th>Kategori Biaya</th>
+                        <th>Keterangan / Keperluan</th>
+                        <th>Akun Pembayaran</th>
+                        <th>Nominal Biaya</th>
+                        <th>Petugas</th>
+                      </tr>
+                    </thead>
+                    <tbody id="expensesTableBody">
+                      <!-- Rendered dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- SUB-PANE 3: KATALOG & UPLOAD FOTO MINUMAN -->
+            <div class="mgmt-pane" id="paneProduk">
+              <div class="pane-head">
+                <div>
+                  <h2>Katalog Menu Kafe & Foto Produk</h2>
+                  <p>Kelola daftar menu minuman/makanan, edit harga jual, HPP, kategori, dan foto produk.</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button class="btn-secondary" id="openCategoryManageModalBtn">
+                    <i class="fa-solid fa-layer-group text-caramel"></i> Kelola Kategori
+                  </button>
+                  <button class="btn-primary-warm" id="openAddProductModalBtn">
+                    <i class="fa-solid fa-plus"></i> Tambah Menu Baru
+                  </button>
+                </div>
+              </div>
+
+              <!-- Filter & Search Toolbar in Catalog -->
+              <div class="catalog-filter-bar">
+                <div class="catalog-search-wrap">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="text" id="catalogSearchInput" placeholder="Cari menu kafe, SKU, atau kategori...">
+                </div>
+                <div class="catalog-category-chips" id="catalogCategoryChips">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+
+              <div class="catalog-edit-grid" id="catalogManageGrid">
+                <!-- Rendered dynamically with editable photo buttons, edit details, and delete -->
+              </div>
+            </div>
+
+            <!-- SUB-PANE 4: PROMOSI & VOUCHER -->
+            <div class="mgmt-pane" id="panePromosi">
+              <div class="pane-head">
+                <div>
+                  <h2>Mesin Promosi, Voucher & Margin Guard</h2>
+                  <p>Atur kode voucher diskon dan proteksi anti-jual rugi di bawah HPP.</p>
+                </div>
+                <button class="btn-primary-warm" id="openAddPromoModalBtn">
+                  <i class="fa-solid fa-plus"></i> Tambah Promo Baru
+                </button>
+              </div>
+              <div class="promo-cards-grid" id="promoCardsGrid">
+                <!-- Rendered dynamically with edit & delete buttons -->
+              </div>
+            </div>
+
+            <!-- SUB-PANE 5: SHIFT & KAS LACI (TATAKAN MODERN & TERSTRUKTUR) -->
+            <div class="mgmt-pane" id="paneShift">
+              <div class="pane-head">
+                <div>
+                  <h2>Manajemen Shift & Pengendalian Kas Laci</h2>
+                  <p>Pengawasan ketat uang fisik di laci kasir, pencatatan petty cash, dan rekonsiliasi akhir shift.</p>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <button class="btn-secondary" id="openStaffManageModalBtn">
+                    <i class="fa-solid fa-users-gear text-caramel"></i> Kelola Karyawan
+                  </button>
+                  <button class="btn-secondary" id="hubCashInBtn">
+                    <i class="fa-solid fa-arrow-down" style="color: #2e7d32;"></i> Kas Masuk
+                  </button>
+                  <button class="btn-secondary" id="hubCashOutBtn">
+                    <i class="fa-solid fa-arrow-up" style="color: var(--accent-terracotta);"></i> Kas Keluar
+                  </button>
+                  <button class="btn-danger" id="hubCloseShiftBtn">
+                    <i class="fa-solid fa-lock"></i> Tutup Shift
+                  </button>
+                </div>
+              </div>
+
+              <!-- Banner Status Shift Aktif -->
+              <div class="shift-status-banner">
+                <div class="shift-banner-left">
+                  <div class="shift-avatar-wrap">
+                    <i class="fa-solid fa-user-tie"></i>
+                  </div>
+                  <div>
+                    <div class="shift-badge-row">
+                      <span class="pulse-indicator"></span>
+                      <strong class="shift-id-tag" id="shiftActiveIdTag">SHIFT #SH-001 (AKTIF BERJALAN)</strong>
+                    </div>
+                    <h3 class="shift-cashier-title" id="shiftCashierTitle">Kasir: Rian Pratama (Shift Pagi)</h3>
+                    <p class="shift-meta-sub">Dibuka: Hari Ini pukul 08:00 WIB • Terminal POS 01</p>
+                  </div>
+                </div>
+                <div class="shift-banner-right">
+                  <span class="shift-timer-pill"><i class="fa-solid fa-stopwatch text-caramel"></i> Durasi: <strong id="shiftDurationText">2 Jam 45 Menit</strong></span>
+                </div>
+              </div>
+
+              <!-- 4 Tatakan Kartu Kas Laci Utama -->
+              <div class="shift-tatak-grid">
+                <div class="shift-tatak-card">
+                  <div class="tatak-icon espresso"><i class="fa-solid fa-vault"></i></div>
+                  <div class="tatak-content">
+                    <span class="tatak-label">1. Modal Awal Kas Laci</span>
+                    <h3 class="tatak-value" id="hubShiftInitial">Rp 250.000</h3>
+                    <small>Uang kembalian awal saat buka kasir</small>
+                  </div>
+                </div>
+
+                <div class="shift-tatak-card">
+                  <div class="tatak-icon green"><i class="fa-solid fa-money-bill-wave"></i></div>
+                  <div class="tatak-content">
+                    <span class="tatak-label">2. Penjualan Tunai (Cash)</span>
+                    <h3 class="tatak-value text-green" id="hubShiftCashSales">Rp 28.600</h3>
+                    <small id="hubShiftCashCount">Dari transaksi tunai hari ini</small>
+                  </div>
+                </div>
+
+                <div class="shift-tatak-card">
+                  <div class="tatak-icon warm"><i class="fa-solid fa-money-bill-transfer"></i></div>
+                  <div class="tatak-content">
+                    <span class="tatak-label">3. Arus Kas Masuk / Keluar</span>
+                    <h3 class="tatak-value" id="hubShiftMovements">Rp 0</h3>
+                    <small>Petty cash & keperluan darurat</small>
+                  </div>
+                </div>
+
+                <div class="shift-tatak-card highlight-gold">
+                  <div class="tatak-icon gold"><i class="fa-solid fa-cash-register"></i></div>
+                  <div class="tatak-content">
+                    <span class="tatak-label">4. Kas Wajib Ada di Laci</span>
+                    <h2 class="tatak-value text-caramel" id="hubShiftExpectedCash">Rp 278.600</h2>
+                    <small>Uang fisik yang harus ada di laci saat dihitung</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tatakan Pemisahan Transaksi Non-Tunai / Digital -->
+              <div class="shift-digital-card">
+                <div class="digital-icon-box"><i class="fa-solid fa-qrcode"></i></div>
+                <div class="digital-info-box">
+                  <h4>Pemisahan Saldo Non-Tunai / Digital (Tidak Masuk Laci Fisik)</h4>
+                  <p>Pembayaran QRIS Dinamis dan EDC Bank otomatis tercatat terpisah dan langsung mengendap di rekening bank toko.</p>
+                </div>
+                <div class="digital-amounts-box">
+                  <div class="digital-amt-item">
+                    <span>QRIS Dinamis:</span>
+                    <strong class="text-caramel" id="hubShiftDigitalSales">Rp 78.200</strong>
+                  </div>
+                  <div class="digital-amt-item">
+                    <span>EDC / Transfer:</span>
+                    <strong>Rp 0</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tabel Riwayat Kas Masuk & Keluar (Petty Cash) -->
+              <div class="dash-table-card" style="margin-top: 20px;">
+                <div class="table-card-head">
+                  <h3><i class="fa-solid fa-receipt text-caramel"></i> Riwayat Kas Masuk & Kas Keluar Laci (Petty Cash)</h3>
+                  <span class="badge-sub">Shift Saat Ini</span>
+                </div>
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Waktu</th>
+                      <th>Jenis Arus</th>
+                      <th>Nominal</th>
+                      <th>Keterangan / Keperluan</th>
+                      <th>Petugas Kasir</th>
+                    </tr>
+                  </thead>
+                  <tbody id="shiftMovementsTableBody">
+                    <!-- Rendered dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- SUB-PANE 6: CRM MEMBER -->
+            <div class="mgmt-pane" id="paneCrm">
+              <div class="pane-head">
+                <div>
+                  <h2>Database Member, Poin & Saldo Deposit</h2>
+                  <p>Data pelanggan setia, tier keanggotaan, dan preferensi rasa minuman.</p>
+                </div>
+                <button class="btn-primary-warm" id="openAddCustomerModalBtn">
+                  <i class="fa-solid fa-user-plus"></i> Tambah Pelanggan Baru
+                </button>
+              </div>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Nama Member</th>
+                    <th>Kontak / WA</th>
+                    <th>Level Tier</th>
+                    <th>Poin Loyalitas</th>
+                    <th>Saldo Deposit</th>
+                    <th>Preferensi Rasa</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="hubCustomerTableBody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- SUB-PANE 7: KDS LAYAR DAPUR -->
+            <div class="mgmt-pane" id="paneKds">
+              <div class="pane-head">
+                <div>
+                  <h2>Layar Dapur & Barista (KDS Live View)</h2>
+                  <p>Antrean langsung pesanan kopi & makanan dengan waktu tunggu.</p>
+                </div>
+              </div>
+              <div class="kds-grid" id="kdsOrdersGrid">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- SUB-PANE 8: RETUR & AUDIT LOG -->
+            <div class="mgmt-pane" id="paneRetur">
+              <div class="pane-head">
+                <div>
+                  <h2>Audit Trail & Keamanan Transaksi</h2>
+                  <p>Pencatatan riwayat sensitif: buka shift, void, retur, dan perubahan harga.</p>
+                </div>
+              </div>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Waktu</th>
+                    <th>Pengguna & Role</th>
+                    <th>Aksi</th>
+                    <th>Rincian Catatan</th>
+                    <th>Terminal</th>
+                  </tr>
+                </thead>
+                <tbody id="auditLogsTableBody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- SUB-PANE 9: MULTI-CABANG -->
+            <div class="mgmt-pane" id="paneCabang">
+              <div class="pane-head">
+                <div>
+                  <h2>Multi-Cabang & Mutasi Stok Gudang</h2>
+                  <p>Pengelolaan outlet kafe dan perpindahan bahan baku biji kopi/susu.</p>
+                </div>
+              </div>
+              <div class="branches-grid" id="branchesCardsGrid">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- SUB-PANE 10: ASISTEN AI KAFE -->
+            <div class="mgmt-pane" id="paneAi">
+              <div class="pane-head">
+                <div>
+                  <h2>Asisten AI Caffee Sa'adah Intelligence</h2>
+                  <p>Tanya jawab realtime performa omzet, estimasi laba kotor, sisa stok, dan status kasir.</p>
+                </div>
+              </div>
+              <div class="ai-chat-full-wrap">
+                <div class="ai-briefing-banner">
+                  <i class="fa-solid fa-wand-magic-sparkles text-gold"></i>
+                  <div>
+                    <h4>Daily Coffee Executive Briefing</h4>
+                    <p id="aiBriefingText">Memuat ringkasan performa penjualan kafe secara realtime...</p>
+                  </div>
+                </div>
+
+                <!-- Quick Prompt Chips -->
+                <div class="ai-prompt-chips-bar">
+                  <span class="prompt-chip-hint"><i class="fa-solid fa-lightbulb text-gold"></i> Tanya Cepat:</span>
+                  <button type="button" class="btn-prompt-chip" data-prompt="Berapa untung kita hari ini?">💰 Laba & Untung</button>
+                  <button type="button" class="btn-prompt-chip" data-prompt="Berapa omzet penjualan hari ini?">📈 Omzet Hari Ini</button>
+                  <button type="button" class="btn-prompt-chip" data-prompt="Menu apa yang paling laris hari ini?">🏆 Menu Terlaris</button>
+                  <button type="button" class="btn-prompt-chip" data-prompt="Cek sisa stok bahan baku kafe">📦 Cek Sisa Stok</button>
+                  <button type="button" class="btn-prompt-chip" data-prompt="Berapa uang tunai di laci kasir saat ini?">💵 Kas Laci Kasir</button>
+                </div>
+
+                <div class="ai-chat-messages-box" id="aiChatMessagesBox">
+                  <div class="msg ai">
+                    <p>Halo! Saya <strong>Asisten AI Caffee Sa'adah</strong>. Saya terhubung secara realtime dengan data pesanan, kasir, stok bahan, dan laporan keuangan kafe hari ini. Silakan tanyakan apa saja seperti: <em>"Berapa untung kita hari ini?"</em>, <em>"Menu terlaris hari ini?"</em>, atau <em>"Cek sisa stok bahan"</em>.</p>
+                  </div>
+                </div>
+                <div class="ai-input-bar">
+                  <input type="text" id="aiQuestionInput" placeholder="Ketik pertanyaan seputar kafe: 'Berapa untung hari ini?', 'Menu apa paling laku?'...">
+                  <button class="btn-primary-warm" id="sendAiQuestionBtn"><i class="fa-solid fa-paper-plane"></i> Kirim</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- SUB-PANE 11: PENGATURAN -->
+            <div class="mgmt-pane" id="panePengaturan">
+              <div class="pane-head">
+                <div>
+                  <h2>Pengaturan Kafe & Format Struk</h2>
+                  <p>Konfigurasi nama toko, alamat, tarif pajak, dan footer struk.</p>
+                </div>
+              </div>
+
+              <!-- AKUN & MULTI-TOKO MANAGER CARD -->
+              <div class="store-account-card">
+                <div class="store-account-header">
+                  <div class="store-account-info">
+                    <div class="store-avatar"><i class="fa-solid fa-shop"></i></div>
+                    <div>
+                      <span class="store-id-tag">ID Toko Aktif: <strong id="settingsActiveStoreId">TUNTUN</strong></span>
+                      <h3 id="settingsActiveStoreName">Caffee Sa'adah (Pusat)</h3>
+                      <p>Data pesanan, omzet kasir, dan laporan keuangan tersimpan di database toko ini.</p>
+                    </div>
+                  </div>
+                  <div class="store-account-actions">
+                    <button type="button" class="btn-primary-warm" id="btnSettingsSwitchStore">
+                      <i class="fa-solid fa-right-from-bracket"></i> Ganti Toko / Keluar
+                    </button>
+                    <button type="button" class="btn-secondary" id="btnSettingsRegisterNewStore">
+                      <i class="fa-solid fa-plus"></i> Buka Cabang / Toko Baru
+                    </button>
+                    <button type="button" class="btn-secondary" id="btnSettingsResetReports" style="color: #c94a4a; border-color: #e5b4b4;">
+                      <i class="fa-solid fa-rotate-left"></i> Reset Laporan Toko ke Rp 0
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="settings-form-grid">
+                <div class="form-group">
+                  <label>Nama Kafe</label>
+                  <input type="text" id="settingCafeName" value="CAFFEE SA'ADAH (Coffee, Cake & Bread)">
+                </div>
+                <div class="form-group">
+                  <label>Alamat Kafe</label>
+                  <input type="text" id="settingCafeAddress" value="Jl. Caffee Sa'adah No. 12, Halal Indonesia">
+                </div>
+                <div class="form-group">
+                  <label>No. WhatsApp</label>
+                  <input type="text" id="settingCafePhone" value="0812-1111-2222 / 0813-3333-4444">
+                </div>
+                <div class="form-group">
+                  <label>Footer Struk</label>
+                  <input type="text" id="settingCafeFooter" value="Terima Kasih Telah Berkunjung ke Caffee Sa'adah! • IG: @cs.coffeesaadah">
+                </div>
+              </div>
+
+              <div style="margin-top: 12px; margin-bottom: 22px; display: flex; justify-content: flex-end;">
+                <button type="button" class="btn-primary-warm" id="btnSaveCafeSettings">
+                  <i class="fa-solid fa-floppy-disk"></i> Simpan Format Teks Struk
+                </button>
+              </div>
+
+              <!-- LOGO CETAK STRUK THERMAL (UPLOAD & PREVIEW) -->
+              <div class="receipt-logo-setting-card">
+                <div class="receipt-logo-card-head">
+                  <div class="receipt-logo-card-title">
+                    <i class="fa-solid fa-image text-caramel" style="font-size: 1.4rem;"></i>
+                    <div>
+                      <h3>Logo Cetak Struk (Thermal Receipt Logo)</h3>
+                      <p>Upload logo kafe Anda untuk dicetak di bagian paling atas struk kasir thermal.</p>
+                    </div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--coffee-dark);">Cetak Logo:</span>
+                    <label class="switch-toggle" title="Aktifkan atau nonaktifkan cetak logo di struk">
+                      <input type="checkbox" id="toggleReceiptLogoActive" checked>
+                      <span class="slider-toggle"></span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="receipt-logo-card-body">
+                  <div class="receipt-logo-preview-box">
+                    <div class="receipt-logo-preview-inner" id="receiptLogoPreviewWrap">
+                      <img src="assets/saadah_logo.png" id="receiptLogoPreviewImg" alt="Preview Logo Struk" class="receipt-logo-preview-img">
+                    </div>
+                    <span class="receipt-logo-dimension-hint" id="receiptLogoDimensionHint">Logo Aktif: Caffee Sa'adah</span>
+                  </div>
+
+                  <div class="receipt-logo-controls-col">
+                    <div class="form-group">
+                      <label><i class="fa-solid fa-cloud-arrow-up text-caramel"></i> Pilih / Ganti File Logo Kafe:</label>
+                      <input type="file" id="inputReceiptLogoFile" accept="image/*" style="display: none;">
+                      <div class="receipt-logo-btn-row">
+                        <button type="button" class="btn-primary-warm" id="btnUploadReceiptLogo">
+                          <i class="fa-solid fa-upload"></i> Upload Logo Struk Baru
+                        </button>
+                        <button type="button" class="btn-secondary" id="btnResetReceiptLogo" title="Kembalikan ke logo default Caffee Sa'adah">
+                          <i class="fa-solid fa-rotate-left"></i> Reset ke Logo Default
+                        </button>
+                      </div>
+                      <small class="form-hint"><i class="fa-solid fa-circle-info text-caramel"></i> Format disarankan: PNG transparan atau background putih. Otomatis tersimpan di memori kasir.</small>
+                    </div>
+
+                    <div class="receipt-logo-options-row">
+                      <div class="form-group" style="flex: 1; min-width: 180px;">
+                        <label><i class="fa-solid fa-arrows-left-right text-caramel"></i> Ukuran Logo pada Struk:</label>
+                        <select id="selectReceiptLogoSize" class="form-select-sm">
+                          <option value="small">Kecil (35mm / 95px)</option>
+                          <option value="medium" selected>Sedang (48mm / 140px - Standar)</option>
+                          <option value="large">Lebar (58mm / 185px - Penuh)</option>
+                        </select>
+                      </div>
+
+                      <div class="form-group" style="flex: 1; min-width: 180px;">
+                        <label><i class="fa-solid fa-circle-half-stroke text-caramel"></i> Efek Cetak Thermal:</label>
+                        <select id="selectReceiptLogoMono" class="form-select-sm">
+                          <option value="normal" selected>Asli / Normal (Warna & Grayscale)</option>
+                          <option value="mono">Monokrom Kontras Tinggi (Thermal Tajam)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- INTEGRASI GOOGLE SHEETS REAL-TIME SYNC -->
+              <div class="sheet-integration-card">
+                <div class="sheet-card-header">
+                  <div class="sheet-icon-title">
+                    <i class="fa-solid fa-file-excel" style="color: #2e7d32; font-size: 1.6rem;"></i>
+                    <div>
+                      <h3>Integrasi Google Spreadsheet (Real-Time Cloud Sync)</h3>
+                      <p>Setiap pesanan baru dan perbaruan transaksi otomatis dikirim ke Google Sheets toko Anda secara real-time.</p>
+                    </div>
+                  </div>
+                  <span class="sheet-badge-online" id="sheetSyncBadge"><i class="fa-solid fa-circle-check"></i> Siap Sinkronisasi</span>
+                </div>
+
+                <div class="sheet-card-body">
+                  <div class="form-group">
+                    <label><i class="fa-solid fa-link text-caramel"></i> URL Web App Google Apps Script (Webhook):</label>
+                    <div style="display: flex; gap: 8px;">
+                      <input type="text" id="googleSheetUrlInput" placeholder="Tempel URL Web App Google Apps Script Anda (berakhiran /exec)..." style="flex: 1;">
+                      <button class="btn-primary-warm" id="saveSheetUrlBtn" type="button" style="white-space: nowrap;">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan URL
+                      </button>
+                    </div>
+                    <small style="color: var(--text-dim); display: block; margin-top: 6px;">
+                      <i class="fa-solid fa-circle-info text-caramel"></i> Buka Google Sheets &gt; Ekstensi &gt; Apps Script &gt; Deploy &gt; Web App (Who has access: Anyone) &gt; Salin URL dan simpan di sini.
+                    </small>
+                  </div>
+
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px; flex-wrap: wrap; gap: 10px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer;">
+                      <input type="checkbox" id="autoSyncSheetsCheck" checked> Kirim otomatis setiap kali transaksi kasir selesai
+                    </label>
+
+                    <div style="display: flex; gap: 8px;">
+                      <button class="btn-secondary" id="openScriptModalBtn" type="button">
+                        <i class="fa-solid fa-code"></i> Salin Kode Script Google
+                      </button>
+                      <button class="btn-primary-warm" id="testGoogleSheetSyncBtn" type="button">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Tes Kirim Data Uji
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <nav class="app-bottom-nav" id="appBottomNav">
+      <button class="bnav-item active" data-view="pos">
+        <i class="fa-solid fa-cash-register"></i>
+        <span>Kasir</span>
+      </button>
+      <button class="bnav-item" data-view="orders">
+        <i class="fa-solid fa-receipt"></i>
+        <span>Pesanan</span>
+      </button>
+      <button class="bnav-item" data-view="management">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Manajemen</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ==================== MODALS & DIALOGS ==================== -->
+
+  <!-- MODAL 1: MODIFIER POPUP (F&B Sugar, Ice, Size, Topping) DENGAN MODE EDIT CART -->
+  <div class="modal-overlay" id="modifierModal">
+    <div class="modal-card modal-md">
+      <div class="modal-header">
+        <div>
+          <h3 id="modalProductName">Aren Butter Sea Salt</h3>
+          <span class="modal-subtitle" id="modalProductBasePrice">Harga Dasar: Rp 18.000</span>
+        </div>
+        <button class="btn-close-modal" id="closeModifierModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div id="modifierGroupsContainer">
+          <!-- Rendered dynamically: Size, Sugar, Ice, Toppings -->
+        </div>
+
+        <!-- Catatan Khusus untuk Barista (Bisa di-edit kapan saja) -->
+        <div class="modal-custom-note-wrap">
+          <label><i class="fa-solid fa-comment-dots text-caramel"></i> Catatan Khusus Minuman / Barista:</label>
+          <input type="text" id="modalItemNotesInput" placeholder="Contoh: Es dipisah, less sweet, foam tebal, jangan pakai sedotan...">
+        </div>
+
+        <!-- Kontrol Kuantitas di Dalam Modal -->
+        <div class="modal-qty-control-row">
+          <label><i class="fa-solid fa-calculator text-caramel"></i> Jumlah Porsi (Qty):</label>
+          <div class="qty-stepper-wrap">
+            <button type="button" class="btn-qty-step" id="modalQtyMinusBtn">-</button>
+            <input type="number" id="modalItemQtyInput" value="1" min="1" max="99">
+            <button type="button" class="btn-qty-step" id="modalQtyPlusBtn">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="modal-total-preview">
+          <span>Total Item:</span>
+          <strong id="modalItemTotalText">Rp 22.000</strong>
+        </div>
+        <button class="btn-primary-warm" id="confirmAddToCartBtn">
+          <i class="fa-solid fa-check"></i> <span id="confirmModBtnText">Tambah ke Pesanan</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: CHECKOUT & MULTI-PAYMENT DIALOG -->
+  <div class="modal-overlay" id="checkoutModal">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div>
+          <h3>Konfirmasi Pembayaran</h3>
+          <span class="modal-subtitle">Pilih metode pembayaran dan selesaikan transaksi</span>
+        </div>
+        <button class="btn-close-modal" id="closeCheckoutModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body checkout-body-grid">
+        <!-- Left: Payment Methods -->
+        <div class="checkout-methods-col">
+          <label class="section-label">Metode Pembayaran:</label>
+          <div class="pay-methods-list" id="paymentMethodSelector">
+            <button class="pay-btn active" data-method="cash">
+              <i class="fa-solid fa-money-bill-wave"></i>
+              <div>
+                <strong>Tunai (Cash)</strong>
+                <small>Uang fisik laci kasir</small>
+              </div>
+            </button>
+            <button class="pay-btn" data-method="qris">
+              <i class="fa-solid fa-qrcode"></i>
+              <div>
+                <strong>QRIS Dinamis</strong>
+                <small>GoPay, OVO, Dana, BCA QR</small>
+              </div>
+            </button>
+            <button class="pay-btn" data-method="transferBank">
+              <i class="fa-solid fa-building-columns"></i>
+              <div>
+                <strong>Transfer Bank</strong>
+                <small>BCA / Mandiri Kafe</small>
+              </div>
+            </button>
+            <button class="pay-btn" data-method="edcCard">
+              <i class="fa-solid fa-credit-card"></i>
+              <div>
+                <strong>Kartu Debit/Kredit</strong>
+                <small>Mesin EDC Gesek / Tap</small>
+              </div>
+            </button>
+            <button class="pay-btn" data-method="customerDeposit">
+              <i class="fa-solid fa-wallet"></i>
+              <div>
+                <strong>Saldo Deposit Member</strong>
+                <small id="payDepositBalance">Sisa: Rp 0</small>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Amounts, Quick Cash & QRIS -->
+        <div class="checkout-details-col">
+          <div class="bill-total-card">
+            <span>Total Tagihan:</span>
+            <h2 id="checkoutTagihanAmount">Rp 0</h2>
+          </div>
+
+          <!-- Cash Section -->
+          <div id="cashInputSection" class="pay-section">
+            <label>Uang Tunai Diterima (Rp):</label>
+            <input type="number" id="cashReceivedInput" class="money-input-large" placeholder="0">
+
+            <div class="quick-cash-chips">
+              <button class="btn-cash-chip" id="exactCashChip">Uang Pas</button>
+              <button class="btn-cash-chip" data-amt="50000">Rp 50.000</button>
+              <button class="btn-cash-chip" data-amt="100000">Rp 100.000</button>
+              <button class="btn-cash-chip" data-amt="200000">Rp 200.000</button>
+            </div>
+
+            <div class="change-box">
+              <span>Kembalian Kasir:</span>
+              <strong id="cashChangeAmount">Rp 0</strong>
+            </div>
+          </div>
+
+          <!-- QRIS Section -->
+          <div id="qrisInputSection" class="pay-section" style="display:none;">
+            <div class="qris-card">
+              <div class="qris-head">
+                <span>QRIS STANDAR PEMBAYARAN NASIONAL</span>
+                <strong>CAFFEE SA'ADAH (COFFEE, CAKE & BREAD)</strong>
+              </div>
+              <div class="qris-qr-wrapper">
+                <svg viewBox="0 0 100 100" width="160" height="160">
+                  <rect width="100" height="100" fill="white"/>
+                  <rect x="10" y="10" width="25" height="25" fill="#2b1d16"/>
+                  <rect x="15" y="15" width="15" height="15" fill="white"/>
+                  <rect x="18" y="18" width="9" height="9" fill="#2b1d16"/>
+                  <rect x="65" y="10" width="25" height="25" fill="#2b1d16"/>
+                  <rect x="70" y="15" width="15" height="15" fill="white"/>
+                  <rect x="73" y="18" width="9" height="9" fill="#2b1d16"/>
+                  <rect x="10" y="65" width="25" height="25" fill="#2b1d16"/>
+                  <rect x="15" y="70" width="15" height="15" fill="white"/>
+                  <rect x="18" y="73" width="9" height="9" fill="#2b1d16"/>
+                  <rect x="42" y="15" width="6" height="6" fill="#2b1d16"/>
+                  <rect x="42" y="42" width="16" height="16" fill="#b07d50"/>
+                  <rect x="65" y="45" width="8" height="8" fill="#2b1d16"/>
+                </svg>
+              </div>
+              <div class="qris-amount-tag" id="qrisBadgeAmount">Rp 0</div>
+              <small>Scan via BCA Mobile, GoPay, OVO, ShopeePay, Dana</small>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelCheckoutBtn">Batal</button>
+        <button class="btn-primary-warm" id="confirmProcessPaymentBtn">
+          <i class="fa-solid fa-check"></i> Selesaikan Transaksi & Buka Cetak Struk
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL KHUSUS: CETAK LABEL (PERSIS SCREENSHOT 2 - SIMPLE, BERSIH, CHECKBOX PRODUK) -->
+  <div class="modal-overlay" id="modalCetakLabel">
+    <div class="modal-card modal-label-card">
+      <div class="modal-label-header">
+        <h3 class="modal-label-title">Cetak Label</h3>
+        <button type="button" class="btn-close-label" id="btnCloseCetakLabel" title="Tutup">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-label-body">
+        <div class="label-select-all-row">
+          <label class="custom-checkbox-wrap">
+            <input type="checkbox" id="checkSelectAllLabels" checked>
+            <span class="custom-checkmark"></span>
+            <span class="label-text-main">Pilih Semua Produk</span>
+          </label>
+        </div>
+
+        <div class="label-divider"></div>
+
+        <div class="label-items-list" id="labelItemsListContainer">
+          <!-- Dynamically rendered item checkboxes -->
+        </div>
+      </div>
+
+      <div class="modal-label-footer">
+        <button type="button" class="btn-submit-print-label" id="btnExecuteCetakLabel">
+          <i class="fa-solid fa-print"></i> Cetak
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL KHUSUS: SAMBUNGKAN PRINTER BLUETOOTH THERMAL (ESC/POS & RAWBT) -->
+  <div class="modal-overlay" id="modalBluetoothPrinter">
+    <div class="modal-card modal-bt-card">
+      <div class="modal-header">
+        <div>
+          <h3 style="display:flex; align-items:center; gap:8px;">
+            <i class="fa-brands fa-bluetooth-b text-caramel"></i> Sambungkan Printer Bluetooth
+          </h3>
+          <span class="modal-subtitle">Printer Kasir Thermal Portable 58mm / 80mm (ESC/POS)</span>
+        </div>
+        <button type="button" class="btn-close-modal" id="btnCloseBtModal" onclick="window.closeBluetoothModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body bt-modal-body">
+        <!-- Status Box -->
+        <div class="bt-status-card" id="btStatusCard">
+          <div class="bt-status-icon-wrap disconnected" id="btStatusIconWrap">
+            <i class="fa-brands fa-bluetooth-b" id="btStatusIcon"></i>
+          </div>
+          <div class="bt-status-info">
+            <div class="bt-status-main" id="btStatusMain">Printer Belum Terhubung</div>
+            <div class="bt-status-sub" id="btStatusSub">Tekan tombol cari di bawah untuk mendeteksi printer Bluetooth thermal Anda.</div>
+          </div>
+          <span class="bt-badge-indicator disconnected" id="btBadgeIndicator">Terputus</span>
+        </div>
+
+        <!-- Options: Paper Size & Settings -->
+        <div class="bt-settings-grid">
+          <div class="bt-setting-field">
+            <label for="btPaperWidthSelect"><i class="fa-solid fa-scroll text-caramel"></i> Lebar Kertas Struk:</label>
+            <select id="btPaperWidthSelect" class="bt-select">
+              <option value="58" selected>58 mm (Standar Printer Portable / 32 Kolom)</option>
+              <option value="80">80 mm (Printer Besar / 48 Kolom)</option>
+            </select>
+          </div>
+          <div class="bt-setting-field">
+            <label><i class="fa-solid fa-scissors text-caramel"></i> Pengaturan Kertas:</label>
+            <label class="bt-checkbox-row">
+              <input type="checkbox" id="btAutoFeedCheck" checked>
+              <span>Feed & Potong Kertas Otomatis</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="bt-actions-row">
+          <button type="button" class="btn-primary-warm btn-bt-large" id="btnBtScanAndConnect" onclick="window.connectBluetoothPrinter()">
+            <i class="fa-brands fa-bluetooth-b"></i> <span id="btnBtScanText">Cari & Sambungkan Printer</span>
+          </button>
+          <button type="button" class="btn-secondary btn-bt-large" id="btnBtTestPrint" onclick="window.testPrintBluetooth()" disabled>
+            <i class="fa-solid fa-print"></i> Tes Cetak Bluetooth
+          </button>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; margin-top:6px;">
+            <button type="button" class="btn-secondary" onclick="window.testPrintKasir()" style="padding:10px 8px; font-size:0.8rem; font-weight:700; display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+              <i class="fa-solid fa-receipt text-caramel"></i> Tes Struk Kasir
+            </button>
+            <button type="button" class="btn-secondary" onclick="window.testPrintDapur()" style="padding:10px 8px; font-size:0.8rem; font-weight:700; display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+              <i class="fa-solid fa-fire-burner text-caramel"></i> Tes Struk Dapur
+            </button>
+          </div>
+          <button type="button" class="btn-outline-danger btn-bt-compact" id="btnBtDisconnect" onclick="window.disconnectBluetoothPrinter()" style="display: none;">
+            <i class="fa-solid fa-link-slash"></i> Putuskan
+          </button>
+        </div>
+
+        <!-- Android RawBT Notice / Alternative Option -->
+        <div class="bt-android-callout">
+          <div class="callout-header">
+            <i class="fa-brands fa-android" style="color: #2e7d32; font-size: 1.15rem;"></i>
+            <strong>Alternatif Tablet Android: Cetak via RawBT</strong>
+          </div>
+          <p>Jika printer Bluetooth Anda adalah tipe Classic (sudah dipasangkan di Pengaturan Bluetooth Tablet dengan PIN 0000 atau 1234), Anda bisa langsung mencetak ke aplikasi <strong>RawBT</strong> secara instan.</p>
+          <div class="callout-actions">
+            <button type="button" class="btn-rawbt-action" onclick="window.testRawBtPrint()">
+              <i class="fa-solid fa-bolt"></i> Tes Cetak via RawBT Android
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="window.closeBluetoothModal()">Tutup</button>
+        <button type="button" class="btn-primary-warm" onclick="window.closeBluetoothModal()">Selesai</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: CETAK STRUK MULTI-OPSI (KASIR, DAPUR/BARISTA, & STIKER CUP) - BERSIH & SIMPEL -->
+  <div class="modal-overlay" id="printHubModal">
+    <div class="modal-card modal-simple-print">
+      <div class="modal-header print-modal-header">
+        <div>
+          <h3 id="printHubTitle" class="print-main-title">Pilihan Cetak Pesanan #001</h3>
+          <span class="modal-subtitle" id="printHubSubtitle">Total: Rp 0 • Pelanggan Umum • 1 Item</span>
+        </div>
+        <button class="btn-close-modal" id="closePrintHubBtn" title="Tutup"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body print-simple-body">
+        <!-- 1 Baris Status Printer Ringkas -->
+        <div class="printer-quick-bar">
+          <div class="printer-quick-info">
+            <i class="fa-solid fa-print text-caramel"></i>
+            <span style="font-size:0.8rem; font-weight:700; color:var(--coffee-dark);">Printer:</span>
+            <span class="printer-device-name" id="currentPrinterDisplay">Thermal Bluetooth / Sistem</span>
+            <span class="bt-status-pill" id="btPrinterStatusBadge">Siap</span>
+          </div>
+          <button type="button" class="btn-connect-printer-pill" id="btnConnectBluetoothPrinter" title="Atur / Hubungkan Printer Bluetooth">
+            <i class="fa-brands fa-bluetooth-b"></i> Hubungkan
+          </button>
+        </div>
+
+        <!-- 2 TOMBOL PILIHAN UTAMA: CETAK STRUK KASIR & CETAK STRUK DAPUR -->
+        <div class="print-actions-stack">
+          <!-- Opsi 1: Cetak Struk Kasir -->
+          <button type="button" class="btn-print-choice btn-print-cashier" id="btnPrintCashierDirect">
+            <div class="choice-icon-wrap cashier">
+              <i class="fa-solid fa-receipt"></i>
+            </div>
+            <div class="choice-text-wrap">
+              <h4 class="choice-heading">Cetak Struk Kasir</h4>
+              <p class="choice-subtext">Struk belanja lengkap pelanggan & rincian pembayaran</p>
+            </div>
+            <div class="choice-badge-action">
+              <span>Cetak <i class="fa-solid fa-arrow-right"></i></span>
+            </div>
+          </button>
+
+          <!-- Opsi 2: Cetak Struk Dapur / Barista -->
+          <button type="button" class="btn-print-choice btn-print-kitchen" id="btnPrintKitchenDirect">
+            <div class="choice-icon-wrap kitchen">
+              <i class="fa-solid fa-fire-burner"></i>
+            </div>
+            <div class="choice-text-wrap">
+              <h4 class="choice-heading">Cetak Struk Dapur / Bar</h4>
+              <p class="choice-subtext">Tiket rincian pesanan & catatan varian untuk barista</p>
+            </div>
+            <div class="choice-badge-action">
+              <span>Cetak <i class="fa-solid fa-arrow-right"></i></span>
+            </div>
+          </button>
+
+          <!-- Opsi 3: Cetak Stiker Cup Minuman -->
+          <button type="button" class="btn-print-choice btn-print-sticker" id="btnPrintStickerDirect">
+            <div class="choice-icon-wrap sticker">
+              <i class="fa-solid fa-stamp"></i>
+            </div>
+            <div class="choice-text-wrap">
+              <h4 class="choice-heading">Cetak Stiker Cup</h4>
+              <p class="choice-subtext" id="stickerCupCountText">Label tempel cup gelas (<strong id="totalCupsText">0 Cup</strong>)</p>
+            </div>
+            <div class="choice-badge-action">
+              <span>Cetak <i class="fa-solid fa-arrow-right"></i></span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Pengaturan Cepat: Lebar Kertas & Cetak Logo -->
+        <div class="print-quick-settings-row">
+          <div class="quick-setting-item">
+            <label for="quickReceiptPaperSize"><i class="fa-solid fa-scroll text-caramel"></i> Lebar Kertas:</label>
+            <select id="quickReceiptPaperSize" class="quick-paper-select">
+              <option value="58mm">58 mm (Kecil)</option>
+              <option value="80mm" selected>80 mm (Standar)</option>
+            </select>
+          </div>
+
+          <div class="quick-setting-item">
+            <label class="quick-checkbox-label" for="quickToggleReceiptLogo">
+              <input type="checkbox" id="quickToggleReceiptLogo" checked>
+              <span>Cetak Logo Kafe</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Hidden Thermal Elements (Digunakan Sistem Cetak ESC/POS & Iframe) -->
+        <div class="print-thermal-hidden-wrap" style="display:none;">
+          <div class="thermal-paper" id="cashierReceiptContent"></div>
+          <div class="thermal-paper kitchen-paper" id="kitchenReceiptContent"></div>
+          <div id="singleStickerContainer"></div>
+          <div id="allStickersPrintContainer"></div>
+        </div>
+      </div>
+
+      <div class="modal-footer print-modal-footer">
+        <button class="btn-secondary" id="shareWaBtn"><i class="fa-brands fa-whatsapp" style="color:#25d366;"></i> Bagikan WA</button>
+        <button class="btn-primary-warm" id="closePrintHubFooterBtn">Selesai</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: UPLOAD / UBAH FOTO MINUMAN -->
+  <div class="modal-overlay" id="photoModal">
+    <div class="modal-card modal-md">
+      <div class="modal-header">
+        <div>
+          <h3 id="photoModalTitle">Ubah Foto Minuman</h3>
+          <span class="modal-subtitle">Pilih foto aesthetic atau upload file foto dari HP/Laptop</span>
+        </div>
+        <button class="btn-close-modal" id="closePhotoModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <!-- Current Photo Preview -->
+        <div class="photo-preview-box">
+          <img id="photoModalPreviewImg" src="" alt="Preview">
+        </div>
+
+        <!-- Option A: Upload from Computer/HP -->
+        <div class="form-group" style="margin-top: 14px;">
+          <label><i class="fa-solid fa-upload"></i> Upload Foto dari File (Komputer / HP):</label>
+          <input type="file" id="photoFileInput" accept="image/*" class="file-input-custom">
+        </div>
+
+        <!-- Option B: Select from Preset Coffee Photos -->
+        <div class="form-group" style="margin-top: 14px;">
+          <label><i class="fa-solid fa-images"></i> Atau Pilih dari Galeri Kopi Kafe Aesthetic:</label>
+          <div class="preset-photos-grid" id="presetPhotosGrid">
+            <!-- Preset drink images -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelPhotoBtn">Batal</button>
+        <button class="btn-primary-warm" id="savePhotoBtn">Simpan Foto Minuman</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: CATAT BIAYA OPERASIONAL BARU -->
+  <div class="modal-overlay" id="addExpenseModal">
+    <div class="modal-card modal-sm">
+      <div class="modal-header">
+        <h3>Catat Biaya Operasional</h3>
+        <button class="btn-close-modal" id="closeAddExpenseBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Kategori Beban:</label>
+          <select id="expenseCategorySelect">
+            <option value="Bahan Baku & Susu">Bahan Baku (Susu/Kopi/Sirup)</option>
+            <option value="Listrik & Air">Listrik, Air & Wifi</option>
+            <option value="Gaji & Insentif Barista">Gaji & Insentif Barista</option>
+            <option value="Perawatan Mesin Kopi">Perawatan Mesin Espresso</option>
+            <option value="Operasional Lainnya">Operasional Lain-Lain</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Keterangan / Judul Pengeluaran:</label>
+          <input type="text" id="expenseTitleInput" placeholder="Contoh: Beli Susu Fresh Milk 1 Karton">
+        </div>
+        <div class="form-group">
+          <label>Nominal (Rp):</label>
+          <input type="number" id="expenseAmountInput" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label>Dibayar Menggunakan:</label>
+          <select id="expenseAccountSelect">
+            <option value="Kas Tunai Laci">Kas Tunai Laci</option>
+            <option value="Rekening BCA Toko">Rekening BCA Toko</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelExpenseBtn">Batal</button>
+        <button class="btn-primary-warm" id="saveExpenseBtn">Simpan Pengeluaran</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 6: EDIT PESANAN (KOREKSI STATUS, MEJA, NAMA, ATAU RECALL KE KASIR) -->
+  <div class="modal-overlay" id="editOrderModal">
+    <div class="modal-card modal-md">
+      <div class="modal-header">
+        <div>
+          <h3 id="editOrderModalTitle">Edit Pesanan #001</h3>
+          <span class="modal-subtitle" id="editOrderModalSubtitle">Koreksi status antrean, meja, nama pemesan, atau edit item</span>
+        </div>
+        <button class="btn-close-modal" id="closeEditOrderModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label><i class="fa-solid fa-traffic-light text-caramel"></i> Status Antrean Pesanan:</label>
+          <select id="editOrderStatusSelect">
+            <option value="Diproses Barista">Diproses Barista (Sedang Dibuat)</option>
+            <option value="Siap Disajikan">Siap Disajikan / Diambil</option>
+            <option value="Selesai">Selesai (Sudah Diterima Pelanggan)</option>
+            <option value="Dibatalkan">Dibatalkan (Void / Batal)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa-solid fa-chair text-caramel"></i> Tipe Pesanan & Meja:</label>
+          <div style="display: flex; gap: 8px;">
+            <select id="editOrderTypeSelect" style="flex: 1;">
+              <option value="Dine In">Dine In (Makan di Tempat)</option>
+              <option value="Take Away">Take Away (Bawa Pulang)</option>
+              <option value="Delivery">Delivery (Ojek Online)</option>
+            </select>
+            <input type="text" id="editOrderTableInput" placeholder="No. Meja (e.g. Meja 04)" style="flex: 1;">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa-solid fa-user text-caramel"></i> Nama Pelanggan:</label>
+          <input type="text" id="editOrderCustomerNameInput" placeholder="Nama Pelanggan">
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa-solid fa-list-check text-caramel"></i> Rincian Menu Dalam Pesanan:</label>
+          <div class="edit-order-items-preview" id="editOrderItemsPreview">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- RECALL TO CASHIER WORKBENCH ACTION CARD -->
+        <div class="recall-cart-box">
+          <div class="recall-text">
+            <h4><i class="fa-solid fa-pen-to-square text-caramel"></i> Ingin Ubah Item Minuman / Tambah Menu?</h4>
+            <p>Tarik pesanan ini kembali ke Kasir untuk menambah pesanan baru, mengganti modifier rasa, atau mengurangi menu.</p>
+          </div>
+          <button type="button" class="btn-recall-to-cart" id="recallOrderToCartBtn">
+            <i class="fa-solid fa-cash-register"></i> Tarik ke Kasir & Edit Menu
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelEditOrderBtn">Tutup</button>
+        <button class="btn-primary-warm" id="saveOrderDetailsBtn">
+          <i class="fa-solid fa-check"></i> Simpan Info Pesanan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 7: TAMBAH & EDIT MENU MINUMAN / MAKANAN -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal-card modal-md">
+      <div class="modal-header">
+        <div>
+          <h3 id="productModalTitle">Tambah Menu Baru</h3>
+          <span class="modal-subtitle">Atur rincian nama, kategori, harga jual, dan HPP modal bahan</span>
+        </div>
+        <button class="btn-close-modal" id="closeProductModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="productEditId">
+        <div class="form-group">
+          <label><i class="fa-solid fa-mug-hot text-caramel"></i> Nama Menu Minuman / Makanan:</label>
+          <input type="text" id="productNameInput" placeholder="Contoh: Caramel Latte Macchiato" required>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label><i class="fa-solid fa-layer-group text-caramel"></i> Kategori Menu:</label>
+            <select id="productCategorySelect">
+              <!-- Rendered dynamically -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-barcode text-caramel"></i> Kode / SKU:</label>
+            <input type="text" id="productSkuInput" placeholder="TTN-NEW-01">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label><i class="fa-solid fa-tag text-caramel"></i> Harga Jual (Rp):</label>
+            <input type="number" id="productPriceInput" placeholder="25000" required>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-coins text-caramel"></i> HPP Modal Bahan (Rp):</label>
+            <input type="number" id="productCostPriceInput" placeholder="9500" required>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label><i class="fa-solid fa-boxes-stacked text-caramel"></i> Stok (Unlimited):</label>
+            <input type="text" id="productStockInput" value="Unlimited" readonly style="background: var(--bg-cream-warm); color: var(--text-dim); font-weight: 700;">
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-align-left text-caramel"></i> Deskripsi Singkat Minuman:</label>
+            <input type="text" id="productDescInput" placeholder="Espresso, sirup vanila organik, fresh milk...">
+          </div>
+        </div>
+
+        <!-- FITUR MODIFIER: BISA TULIS & TAMBAH SENDIRI -->
+        <div class="modifier-builder-section">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label style="font-weight: 800; color: var(--coffee-dark); font-size: 0.85rem; margin: 0;">
+              <i class="fa-solid fa-sliders text-caramel"></i> Opsi & Varian Modifier (Tulis & Tambah Sendiri):
+            </label>
+            <button type="button" class="btn-primary-warm" id="btnAddModifierRowBtn" style="padding: 4px 10px; font-size: 0.74rem;">
+              <i class="fa-solid fa-plus"></i> Tambah Opsi
+            </button>
+          </div>
+          <small style="color: var(--text-dim); display: block; margin-top: 3px;">
+            Tulis opsi bebas (contoh: Large +7.000, Extra Shot +5.000, Less Sugar, No Ice, Topping Jelly +3.000).
+          </small>
+
+          <!-- Modifier Rows Container -->
+          <div class="mod-builder-list" id="productModifierListContainer">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <!-- Quick Preset Buttons -->
+          <div class="mod-builder-presets">
+            <span style="font-size: 0.7rem; color: var(--text-dim); align-self: center;">Preset Cepat:</span>
+            <button type="button" class="btn-mod-preset" onclick="addPresetModRow('Large (Cup Besar)', 7000)">+ Large (+7K)</button>
+            <button type="button" class="btn-mod-preset" onclick="addPresetModRow('Botol 1 Liter', 40000)">+ Botol 1L (+40K)</button>
+            <button type="button" class="btn-mod-preset" onclick="addPresetModRow('Extra Espresso Shot', 5000)">+ Shot (+5K)</button>
+            <button type="button" class="btn-mod-preset" onclick="addPresetModRow('Less Sugar (50%)', 0)">+ Less Sugar (0)</button>
+            <button type="button" class="btn-mod-preset" onclick="addPresetModRow('No Sugar (0%)', 0)">+ No Sugar (0)</button>
+            <button type="button" class="btn-mod-preset" onclick="addPresetModRow('Less Ice (Sedikit Es)', 0)">+ Less Ice (0)</button>
+            <button type="button" class="btn-mod-preset" onclick="addPresetModRow('Topping Boba / Jelly', 3000)">+ Topping (+3K)</button>
+          </div>
+        </div>
+
+        <!-- UPLOAD FOTO LANGSUNG DARI DEVICE (BUKAN LINK) -->
+        <div class="form-group" style="margin-top: 14px;">
+          <label><i class="fa-solid fa-camera text-caramel"></i> Foto Minuman (Upload Langsung dari Perangkat):</label>
+          <div class="photo-device-upload-box">
+            <div class="upload-preview-wrap">
+              <img id="productModalPreviewImg" src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400&q=80" alt="Preview Foto">
+            </div>
+            <div class="upload-actions-wrap">
+              <label class="btn-file-upload" for="productFileInput">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Pilih File Foto dari Galeri / Device
+              </label>
+              <input type="file" id="productFileInput" accept="image/*" style="display: none;">
+              <small style="color: var(--text-dim); display: block; margin-top: 5px;">Pilih file gambar langsung dari penyimpanan komputer atau HP Anda.</small>
+              <input type="text" id="productImageInput" placeholder="URL foto minuman..." style="display: none;">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelProductBtn">Batal</button>
+        <button class="btn-primary-warm" id="saveProductBtn">
+          <i class="fa-solid fa-check"></i> Simpan Menu
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 8: KELOLA KATEGORI MENU KAFE -->
+  <div class="modal-overlay" id="categoryManageModal">
+    <div class="modal-card modal-cat-manage">
+      <div class="modal-header">
+        <div>
+          <h3>Kelola Kategori Menu Kafe</h3>
+          <span class="modal-subtitle">Tambah kategori baru, edit nama, atau kelola susunan kategori menu</span>
+        </div>
+        <button class="btn-close-modal" id="closeCategoryModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body cat-manage-body">
+        <!-- Form Tambah Kategori Modern -->
+        <div class="cat-modern-add-card">
+          <div class="cat-add-card-header">
+            <i class="fa-solid fa-circle-plus text-caramel"></i>
+            <span>Tambah Kategori Baru</span>
+          </div>
+          <div class="cat-add-form-row">
+            <div class="cat-input-wrap">
+              <i class="fa-solid fa-tag input-icon-left"></i>
+              <input type="text" id="newCategoryNameInput" placeholder="Nama Kategori (contoh: Pastry & Croissant)">
+            </div>
+            <div class="cat-select-wrap">
+              <i class="fa-solid fa-icons input-icon-left"></i>
+              <select id="newCategoryIconSelect" class="cat-modern-select">
+                <option value="fa-mug-hot">☕ Kopi Panas (fa-mug-hot)</option>
+                <option value="fa-crown">👑 CS Signature (fa-crown)</option>
+                <option value="fa-cubes-stacked">🧊 Americano / Es (fa-cubes-stacked)</option>
+                <option value="fa-wand-magic-sparkles">✨ Flavour Series (fa-wand-magic)</option>
+                <option value="fa-cookie-bite">🍫 Chocolate Base (fa-cookie-bite)</option>
+                <option value="fa-heart">❤️ Redvelvet Base (fa-heart)</option>
+                <option value="fa-leaf">🍃 Matcha Base (fa-leaf)</option>
+                <option value="fa-martini-glass-citrus">🍹 Squash / Mocktail (fa-martini)</option>
+                <option value="fa-glass-water">🥛 Milk Base (fa-glass-water)</option>
+                <option value="fa-bread-slice">🥐 Roti & Pastry (fa-bread-slice)</option>
+                <option value="fa-burger">🍔 Toast & Makanan (fa-burger)</option>
+                <option value="fa-bottle-water">🍶 Minuman Botol (fa-bottle-water)</option>
+              </select>
+            </div>
+            <button type="button" class="btn-primary-warm btn-add-cat-submit" id="saveNewCategoryBtn">
+              <i class="fa-solid fa-plus"></i> Tambah
+            </button>
+          </div>
+        </div>
+
+        <!-- Daftar Kategori Yang Ada -->
+        <div class="cat-manage-list-section">
+          <div class="cat-list-header-row">
+            <span class="cat-list-title"><i class="fa-solid fa-layer-group text-caramel"></i> Daftar Kategori Aktif:</span>
+            <span class="cat-total-badge" id="catTotalBadge">10 Kategori</span>
+          </div>
+          <div class="category-list-manage-grid" id="categoryListManageContainer">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="closeCategoryFooterBtn">Selesai</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 9: CATAT KAS MASUK / KELUAR LACI (PETTY CASH) -->
+  <div class="modal-overlay" id="cashMovementModal">
+    <div class="modal-card modal-sm">
+      <div class="modal-header">
+        <div>
+          <h3 id="cashMovementModalTitle">Catat Kas Masuk Laci</h3>
+          <span class="modal-subtitle">Pencatatan uang fisik laci di luar transaksi penjualan</span>
+        </div>
+        <button class="btn-close-modal" id="closeCashMovementBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Jenis Arus Kas:</label>
+          <select id="cashMovementTypeSelect">
+            <option value="in">Kas Masuk (Tambah Uang Kembalian / Modal Laci Tambahan)</option>
+            <option value="out">Kas Keluar (Petty Cash / Beli Kebutuhan Darurat)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nominal Uang (Rp):</label>
+          <input type="number" id="cashMovementAmountInput" placeholder="50000" required>
+        </div>
+        <div class="form-group">
+          <label>Keterangan / Keperluan:</label>
+          <input type="text" id="cashMovementNotesInput" placeholder="Contoh: Tambah uang receh kembalian Rp 2.000an" required>
+        </div>
+        <div class="form-group">
+          <label>Petugas Kasir:</label>
+          <input type="text" id="cashMovementOfficerInput" value="Rian Pratama">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelCashMovementBtn">Batal</button>
+        <button class="btn-primary-warm" id="saveCashMovementBtn">Simpan Catatan Kas</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 10: TUTUP SHIFT & REKONSILIASI KAS LACI -->
+  <div class="modal-overlay" id="closeShiftModal">
+    <div class="modal-card modal-md">
+      <div class="modal-header">
+        <div>
+          <h3>Tutup Shift & Rekonsiliasi Kas Laci</h3>
+          <span class="modal-subtitle">Hitung uang fisik di laci dan bandingkan dengan catatan sistem POS</span>
+        </div>
+        <button class="btn-close-modal" id="closeCloseShiftModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="reconcile-box">
+          <div class="reconcile-row">
+            <span>Modal Awal Kas:</span>
+            <strong id="recInitialCash">Rp 250.000</strong>
+          </div>
+          <div class="reconcile-row">
+            <span>Penjualan Tunai Laci:</span>
+            <strong class="text-green" id="recCashSales">Rp 28.600</strong>
+          </div>
+          <div class="reconcile-row">
+            <span>Arus Kas Masuk / Keluar:</span>
+            <strong id="recMovements">Rp 0</strong>
+          </div>
+          <div class="reconcile-divider"></div>
+          <div class="reconcile-row total">
+            <span>Kas Sistem (Seharusnya Ada di Laci):</span>
+            <strong class="text-caramel" id="recExpectedCash">Rp 278.600</strong>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 14px;">
+          <label style="font-size: 0.9rem; font-weight: 800; color: var(--coffee-dark);">
+            <i class="fa-solid fa-coins text-caramel"></i> Hitung Uang Fisik Riil di Laci (Rp):
+          </label>
+          <input type="number" id="actualCashInput" class="money-input-large" placeholder="Masukkan total uang fisik di laci">
+        </div>
+
+        <div class="difference-alert-box" id="differenceAlertBox">
+          <span>Selisih Kas Laci:</span>
+          <strong id="reconcileDifferenceText">Rp 0 (Pas / Seimbang)</strong>
+        </div>
+
+        <div class="form-group" style="margin-top: 10px;">
+          <label>Catatan Rekonsiliasi Tutup Shift:</label>
+          <input type="text" id="reconcileNotesInput" placeholder="Contoh: Kas fisik cocok, laci diserahkan ke kasir shift sore.">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelCloseShiftBtn">Batal</button>
+        <button class="btn-danger" id="confirmCloseShiftBtn">
+          <i class="fa-solid fa-lock"></i> Konfirmasi Tutup Shift
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 11: PANDUAN & KODE GOOGLE APPS SCRIPT SPREADSHEET -->
+  <div class="modal-overlay" id="googleScriptModal">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div>
+          <h3>Kode Google Apps Script - Real-Time Spreadsheet Sync</h3>
+          <span class="modal-subtitle">Salin kode ini ke Ekstensi > Apps Script di Google Sheets Anda</span>
+        </div>
+        <button class="btn-close-modal" id="closeGoogleScriptModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.82rem; color: var(--text-dim); margin-bottom: 10px;">
+          <strong>Langkah 1:</strong> Buka Google Sheets Anda (e.g. <em>Penjualan_TUNTUN_Coffee</em>) &gt; Klik <strong>Extensions (Ekstensi)</strong> &gt; <strong>Apps Script</strong>.<br>
+          <strong>Langkah 2:</strong> Tempelkan (paste) seluruh kode di bawah ini &gt; Klik Simpan &gt; Klik <strong>Deploy (Terapkan) &gt; New deployment &gt; Web app</strong> (Access: Anyone) &gt; Salin URL Web App ke Pengaturan Toko.
+        </p>
+        <div class="code-copy-box">
+          <textarea id="googleAppsScriptCodeArea" readonly style="width: 100%; height: 260px; font-family: monospace; font-size: 0.76rem; background: #271a13; color: #f5ebe0; padding: 12px; border-radius: 6px; border: 1px solid var(--border-cream); outline: none; resize: none;"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="closeGoogleScriptFooterBtn">Tutup</button>
+        <button class="btn-primary-warm" id="copyGoogleAppsScriptBtn">
+          <i class="fa-solid fa-copy"></i> Salin Kode Script ke Clipboard
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 12: PILIH SHIFT & KASIR DI HEADER -->
+  <div class="modal-overlay" id="shiftSelectModal">
+    <div class="modal-card modal-md">
+      <div class="modal-header">
+        <div>
+          <h3>Ganti Shift & Petugas Kasir</h3>
+          <span class="modal-subtitle">Pilih jadwal shift aktif dan nama kasir yang bertugas</span>
+        </div>
+        <button class="btn-close-modal" id="closeShiftSelectBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <!-- LANGKAH 1: PILIH KARYAWAN BERTUGAS -->
+        <div class="form-group">
+          <label style="font-size: 0.92rem; font-weight: 800; color: var(--coffee-dark);">
+            <i class="fa-solid fa-user-check text-caramel"></i> 1. Pilih Karyawan Yang Bertugas:
+          </label>
+          <div style="display: flex; gap: 8px; margin-top: 6px;">
+            <select id="shiftActiveCashierSelect" style="flex: 1; padding: 10px; font-weight: 700; border: 2px solid var(--caramel);">
+              <!-- Rendered dynamically from State.employees with prompt -->
+            </select>
+            <button type="button" class="btn-secondary" id="openStaffFromShiftBtn">
+              <i class="fa-solid fa-user-plus"></i> Tambah Baru
+            </button>
+          </div>
+        </div>
+
+        <!-- PEMBERITAHUAN JIKA KARYAWAN BELUM DIPILIH -->
+        <div class="shift-lock-notice" id="shiftLockNotice" style="display: none;">
+          <i class="fa-solid fa-lock" style="font-size: 1.4rem; color: var(--caramel); margin-bottom: 6px; display: block;"></i>
+          <strong>Pilih nama karyawan terlebih dahulu</strong> untuk membuka input modal kas laci dan jadwal shift.
+        </div>
+
+        <!-- LANGKAH 2: MODAL AWAL & JADWAL SHIFT (KEBUKA SETELAH KARYAWAN DIPILIH) -->
+        <div id="shiftUnlockedFields">
+          <div class="form-group" style="margin-top: 14px;">
+            <label><i class="fa-solid fa-vault text-caramel"></i> 2. Modal Awal Kas Laci Penjualan (Rp):</label>
+            <input type="number" id="shiftModalInitialCashInput" value="250000" class="money-input-large" placeholder="250000">
+            <small style="color: var(--text-dim); display: block; margin-top: 4px;">Uang fisik awal untuk kembalian transaksi kasir.</small>
+          </div>
+
+          <div class="form-group" style="margin-top: 14px;">
+            <label><i class="fa-solid fa-clock text-caramel"></i> 3. Jadwal Shift Operasional:</label>
+            <div class="shift-schedule-options" id="shiftScheduleOptions">
+              <button type="button" class="shift-opt-card active" data-shift="pagi">
+                <strong>Shift Pagi</strong>
+                <small>07:00 - 15:00 WIB</small>
+              </button>
+              <button type="button" class="shift-opt-card" data-shift="sore">
+                <strong>Shift Sore / Malam</strong>
+                <small>15:00 - 23:00 WIB</small>
+              </button>
+              <button type="button" class="shift-opt-card" data-shift="full">
+                <strong>Full Shift Weekend</strong>
+                <small>08:00 - 23:00 WIB</small>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelShiftSelectBtn">Batal</button>
+        <button class="btn-primary-warm" id="saveShiftSelectionBtn">
+          <i class="fa-solid fa-check"></i> Terapkan Shift & Kasir Ini
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 13: MANAJEMEN TIM KARYAWAN & KASIR -->
+  <div class="modal-overlay" id="staffManageModal">
+    <div class="modal-card modal-md">
+      <div class="modal-header">
+        <div>
+          <h3>Kelola Karyawan & Kasir Kafe</h3>
+          <span class="modal-subtitle">Tambah anggota tim barista, kasir, atau supervisor</span>
+        </div>
+        <button class="btn-close-modal" id="closeStaffManageBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <!-- Form Tambah Karyawan -->
+        <div class="category-add-box">
+          <h4><i class="fa-solid fa-user-plus text-caramel"></i> Tambah Karyawan Baru</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+            <input type="text" id="newStaffNameInput" placeholder="Nama Karyawan (e.g. Dimas Maulana)">
+            <select id="newStaffRoleSelect">
+              <option value="Kasir">Kasir</option>
+              <option value="Barista">Barista</option>
+              <option value="Head Barista">Head Barista</option>
+              <option value="Kitchen / Pastry">Kitchen / Pastry</option>
+              <option value="Supervisor">Supervisor</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 8px;">
+            <input type="text" id="newStaffPhoneInput" placeholder="No. WA / HP (e.g. 0812-9988-7766)" style="flex: 2;">
+            <input type="password" id="newStaffPinInput" placeholder="PIN Kasir (4 Digit)" maxlength="4" style="flex: 1;">
+            <button type="button" class="btn-primary-warm" id="saveNewStaffBtn">Tambah</button>
+          </div>
+        </div>
+
+        <!-- Daftar Karyawan -->
+        <div style="margin-top: 16px;">
+          <h4 style="font-size: 0.85rem; color: var(--coffee-dark); margin-bottom: 8px;">
+            <i class="fa-solid fa-users text-caramel"></i> Tim Karyawan Kafe:
+          </h4>
+          <div class="staff-list-container" id="staffListContainer">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="closeStaffManageFooterBtn">Selesai</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 14: PILIH PELANGGAN / MEMBER UNTUK PESANAN DI KASIR -->
+  <div class="modal-overlay" id="customerSelectModal">
+    <div class="modal-card modal-md">
+      <div class="modal-header">
+        <div>
+          <h3>Pilih Pelanggan / Member Kafe</h3>
+          <span class="modal-subtitle">Gunakan data member untuk diskon loyalitas dan akumulasi poin</span>
+        </div>
+        <button class="btn-close-modal" id="closeCustomerSelectBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="search-box" style="margin-bottom: 12px; border: 1px solid var(--border-cream); border-radius: 8px; padding: 6px 12px;">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="customerSearchInput" placeholder="Cari nama member atau nomor WhatsApp..." style="border:none; outline:none; width:100%; background:transparent; font-size:0.85rem;">
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <button type="button" class="btn-secondary" id="setCommonCustomerBtn" style="font-size: 0.78rem;">
+            <i class="fa-solid fa-user-xmark"></i> Pelanggan Umum (Tanpa Member)
+          </button>
+          <button type="button" class="btn-primary-warm" id="openAddCustomerFromSelectBtn" style="font-size: 0.78rem;">
+            <i class="fa-solid fa-user-plus"></i> Daftar Member Baru
+          </button>
+        </div>
+
+        <div class="customer-picker-list" id="customerPickerList">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelCustomerSelectBtn">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 15: FORM TAMBAH PELANGGAN / MEMBER BARU -->
+  <div class="modal-overlay" id="customerFormModal">
+    <div class="modal-card modal-md">
+      <div class="modal-header">
+        <div>
+          <h3 id="customerFormModalTitle">Tambah Pelanggan Baru</h3>
+          <span class="modal-subtitle">Masukkan data profil, tier keanggotaan, dan preferensi kopi</span>
+        </div>
+        <button class="btn-close-modal" id="closeCustomerFormBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label><i class="fa-solid fa-user text-caramel"></i> Nama Pelanggan:</label>
+          <input type="text" id="custNameInput" placeholder="Contoh: Budi Santoso" required>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label><i class="fa-solid fa-phone text-caramel"></i> No. WhatsApp / HP:</label>
+            <input type="text" id="custPhoneInput" placeholder="0812-3456-7890">
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-crown text-caramel"></i> Level Keanggotaan:</label>
+            <select id="custTierSelect">
+              <option value="Bronze">Bronze (Diskon 0%)</option>
+              <option value="Silver">Silver (Diskon 5%)</option>
+              <option value="Gold">Gold (Diskon 10%)</option>
+              <option value="VIP Coffee Club">VIP Coffee Club (Diskon 15%)</option>
+            </select>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label><i class="fa-solid fa-coins text-caramel"></i> Poin Awal:</label>
+            <input type="number" id="custPointsInput" value="50">
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-wallet text-caramel"></i> Saldo Deposit Awal (Rp):</label>
+            <input type="number" id="custDepositInput" value="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label><i class="fa-solid fa-heart text-caramel"></i> Preferensi Kopi / Minuman:</label>
+          <input type="text" id="custPrefInput" placeholder="Contoh: Less Sugar 50%, Oatmilk, Suka Caramel">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelCustomerFormBtn">Batal</button>
+        <button class="btn-primary-warm" id="saveCustomerBtn">
+          <i class="fa-solid fa-check"></i> Simpan Data Pelanggan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 16: TAMBAH & EDIT PROMO / VOUCHER -->
+  <div class="modal-overlay" id="promoModal">
+    <div class="modal-card modal-md">
+      <div class="modal-header">
+        <div>
+          <h3 id="promoModalTitle">Tambah Promo Baru</h3>
+          <span class="modal-subtitle">Atur kode unik voucher dan persentase / nominal diskon</span>
+        </div>
+        <button class="btn-close-modal" id="closePromoModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="promoEditId">
+        <div class="form-group">
+          <label><i class="fa-solid fa-tag text-caramel"></i> Nama Promo / Kampanye:</label>
+          <input type="text" id="promoNameInput" placeholder="Contoh: Promo Akhir Pekan Kopi" required>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label><i class="fa-solid fa-ticket text-caramel"></i> Kode Voucher (Huruf Kapital):</label>
+            <input type="text" id="promoCodeInput" placeholder="WEEKEND20" style="text-transform:uppercase;" required>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-percent text-caramel"></i> Jenis Diskon:</label>
+            <select id="promoTypeSelect">
+              <option value="percent">Persentase (%)</option>
+              <option value="nominal">Nominal Potongan (Rp)</option>
+            </select>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label id="promoValueLabel"><i class="fa-solid fa-coins text-caramel"></i> Nilai Diskon (%):</label>
+            <input type="number" id="promoValueInput" placeholder="20" required>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-cart-shopping text-caramel"></i> Minimal Belanja (Rp):</label>
+            <input type="number" id="promoMinSpendInput" placeholder="50000" value="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label><i class="fa-solid fa-circle-info text-caramel"></i> Keterangan / Syarat Promo:</label>
+          <input type="text" id="promoDescInput" placeholder="Berlaku untuk semua menu minuman kopi & latte">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelPromoBtn">Batal</button>
+        <button class="btn-primary-warm" id="savePromoBtn">
+          <i class="fa-solid fa-check"></i> Simpan Promo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL RIWAYAT ARSIP CADANGAN LAPORAN ================= -->
+  <div id="reportArchiveModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 680px; max-height: 90vh;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: #ebd5c1; color: #634027; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+            <i class="fa-solid fa-box-archive"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 1.15rem; color: #271a13;">Arsip Simpanan Cadangan Laporan</h3>
+            <p style="margin: 2px 0 0; font-size: 0.8rem; color: #8a6a4e;">Laporan yang di-reset tersimpan aman di sini dan bisa diekspor atau dipulihkan</p>
+          </div>
+        </div>
+        <button type="button" class="btn-modal-close" id="btnCloseReportArchiveModal">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 18px; overflow-y: auto; max-height: 65vh;">
+        <div id="reportArchiveListContainer" style="display: flex; flex-direction: column; gap: 12px;">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-top: 1px solid #ebd5c1;">
+        <span style="font-size: 0.8rem; color: #8a6a4e;"><i class="fa-solid fa-shield-halved"></i> Data aman tersimpan di perangkat Anda</span>
+        <button type="button" class="btn-secondary" id="btnDismissReportArchiveModal">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- DEDICATED THERMAL PRINT AREA (CLEAN ISOLATION FOR WINDOW.PRINT) -->
+  <div id="printReceiptThermalArea" class="print-receipt-thermal-area" aria-hidden="true"></div>
+
+  <!-- SheetJS Library for Genuine Multi-Sheet .XLSX Excel Export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- Main JavaScript Logic -->
+  <script src="js/app.js?v=1794112000000"></script>
+</body>
+</html>
+
